@@ -1,0 +1,58 @@
+canvas:
+  version: "2.0"
+  title: AI Pipeline
+  networks:
+    - id: network-1
+      factories:
+        - id: factory-1
+          label: Data Ingestion
+          machines:
+            - id: machine-1
+              label: Sources
+              nodes:
+                - id: source-1
+                  type: source
+                  x: 100
+                  y: 100
+                  content: "Raw data input"
+                  label: Data Source
+                  outputs: [preprocess]
+                - id: source-2
+                  type: source
+                  x: 100
+                  y: 260
+                  content: "External API"
+                  label: API Feed
+                  outputs: [preprocess]
+            - id: machine-2
+              label: Processing
+              nodes:
+                - id: preprocess
+                  type: process
+                  x: 450
+                  y: 180
+                  content: "Clean and normalize"
+                  label: Preprocess
+                  inputs: [source-1, source-2]
+                  outputs: [analyze]
+        - id: factory-2
+          label: Analysis
+          machines:
+            - id: machine-3
+              label: AI Stage
+              nodes:
+                - id: analyze
+                  type: ai
+                  x: 800
+                  y: 180
+                  content: "Run LLM analysis"
+                  label: AI Analysis
+                  inputs: [preprocess]
+                  outputs: [output]
+                - id: output
+                  type: output
+                  x: 1150
+                  y: 180
+                  content: "Generated report"
+                  label: Report
+                  inputs: [analyze]

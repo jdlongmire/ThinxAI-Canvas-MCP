@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# Output (generated PNGs)
+output/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

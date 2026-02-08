@@ -1,0 +1,18 @@
+title: Simple Flow
+nodes:
+  - id: start
+    type: input
+    content: "Starting point"
+    label: Start
+    outputs: [process]
+  - id: process
+    type: process
+    content: "Process data"
+    label: Process
+    inputs: [start]
+    outputs: [end]
+  - id: end
+    type: output
+    content: "Final result"
+    label: Output
+    inputs: [process]

@@ -1,0 +1,24 @@
+title: Decision Tree
+nodes:
+  - id: question
+    type: input
+    content: "Evaluate condition"
+    label: Question
+    outputs: [yes-path, no-path]
+  - id: yes-path
+    type: process
+    content: "Condition is true"
+    label: "Yes"
+    inputs: [question]
+    outputs: [result]
+  - id: no-path
+    type: decision
+    content: "Condition is false"
+    label: "No"
+    inputs: [question]
+    outputs: [result]
+  - id: result
+    type: output
+    content: "Final outcome"
+    label: Result
+    inputs: [yes-path, no-path]
