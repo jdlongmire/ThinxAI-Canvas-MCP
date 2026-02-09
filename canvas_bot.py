@@ -10,6 +10,7 @@ Usage:
 """
 
 import asyncio
+import base64
 import json
 import logging
 import os
@@ -36,12 +37,14 @@ logger = logging.getLogger(__name__)
 # Configuration
 HISTORY_DIR = SCRIPT_DIR / 'history'
 DIAGRAMS_DIR = SCRIPT_DIR / 'diagrams'
+UPLOADS_DIR = SCRIPT_DIR / 'uploads'
 WEB_DIR = SCRIPT_DIR / 'web'
 PROFILE_PATH = SCRIPT_DIR / 'profiles' / 'canvas_bot.md'
 
 # Ensure directories exist
 HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 DIAGRAMS_DIR.mkdir(parents=True, exist_ok=True)
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 WEB_DIR.mkdir(parents=True, exist_ok=True)
 (SCRIPT_DIR / 'profiles').mkdir(parents=True, exist_ok=True)
 
@@ -112,7 +115,39 @@ def render_canvas_yaml(yaml_content: str, output_name: str = None) -> tuple[str,
         return None, str(e)
 
 
-def build_canvas_bot_prompt(user_id: str, message: str) -> str:
+def save_uploaded_image(base64_data: str, filename: str = None) -> str:
+    """
+    Save a base64 image to the uploads directory.
+    Returns the file path.
+    """
+    try:
+        # Strip data URL prefix if present
+        if ',' in base64_data:
+            base64_data = base64_data.split(',', 1)[1]
+
+        image_data = base64.b64decode(base64_data)
+
+        # Generate filename
+        if not filename:
+            filename = f"upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+        else:
+            # Sanitize filename
+            safe_name = re.sub(r'[^\w\-_.]', '_', filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            name, ext = os.path.splitext(safe_name)
+            filename = f"{name}_{timestamp}{ext}"
+
+        file_path = UPLOADS_DIR / filename
+        with open(file_path, 'wb') as f:
+            f.write(image_data)
+
+        return str(file_path)
+    except Exception as e:
+        logger.error(f"Error saving uploaded image: {e}")
+        return None
+
+
+def build_canvas_bot_prompt(user_id: str, message: str, image_path: str = None) -> str:
     """Build the Canvas Bot prompt with specialized context."""
     parts = []
 
@@ -232,6 +267,27 @@ canvas:
 
     # Current message
     parts.append(f"User message: {message}")
+
+    # Add image analysis instructions if an image is attached
+    if image_path:
+        image_instructions = f"""<image_analysis>
+The user has attached an image/sketch at: {image_path}
+
+IMPORTANT: Use the Read tool to view this image file. Analyze the sketch and:
+1. Identify the components/nodes shown (boxes, circles, labels)
+2. Identify the connections/arrows between them
+3. Determine the flow direction (left-to-right, top-to-bottom)
+4. Map each sketched element to appropriate Canvas node types:
+   - Boxes with data labels → input/output nodes
+   - Processing boxes → process nodes
+   - Diamond shapes → decision nodes
+   - Cloud/AI labels → ai nodes
+   - Database/API labels → source nodes
+   - Constants/config → static nodes
+
+Then generate the Canvas YAML that recreates the diagram professionally.
+</image_analysis>"""
+        parts.append(image_instructions)
 
     return "\n\n".join(parts)
 
@@ -453,14 +509,29 @@ async def handle_message_stream(request):
     try:
         data = await request.json()
         user_message = data.get("message", "").strip()
+        image_base64 = data.get("image", None)
+        image_name = data.get("image_name", None)
 
-        if not user_message:
+        if not user_message and not image_base64:
             await response.write(b'data: {"type":"error","message":"No message provided"}\n\n')
             return response
 
-        logger.info(f"Canvas Bot: {user_message[:50]}...")
+        # Handle image upload
+        image_path = None
+        if image_base64:
+            image_path = save_uploaded_image(image_base64, image_name)
+            if image_path:
+                logger.info(f"Saved uploaded image: {image_path}")
+                await send_sse_data({"type": "status", "message": "Analyzing your sketch..."})
+            else:
+                await send_sse_data({"type": "status", "message": "Warning: Could not save image"})
 
-        full_prompt = build_canvas_bot_prompt(WEB_USER_ID, user_message)
+        if not user_message:
+            user_message = "Convert this sketch to a professional diagram"
+
+        logger.info(f"Canvas Bot: {user_message[:50]}..." + (f" [with image]" if image_path else ""))
+
+        full_prompt = build_canvas_bot_prompt(WEB_USER_ID, user_message, image_path)
 
         result, returncode, stderr = await call_claude_streaming(
             full_prompt,
@@ -564,6 +635,7 @@ async def handle_image(request):
     # Security: only allow certain directories
     allowed_roots = [
         DIAGRAMS_DIR.resolve(),
+        UPLOADS_DIR.resolve(),
         SCRIPT_DIR.resolve(),
     ]
 
