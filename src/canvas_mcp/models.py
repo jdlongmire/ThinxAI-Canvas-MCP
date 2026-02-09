@@ -292,6 +292,11 @@ class Canvas(BaseModel):
     one or more machines > nodes.  The simplified YAML format creates
     this structure automatically.
 
+    Theme Support
+    -------------
+    Set ``theme`` to "dark" (default) or "light" to switch color palettes.
+    The theme affects all colors: background, text, containers, and nodes.
+
     Flat Access
     -----------
     The canvas maintains a ``_node_map`` for O(1) node lookup by id.
@@ -303,6 +308,7 @@ class Canvas(BaseModel):
     width: int = 1920
     height: int = 1080
     background_color: str = "#11111b"
+    theme: str = "dark"  # "dark" or "light"
     networks: list[CanvasNetwork] = Field(default_factory=list)
 
     # Flat access helpers

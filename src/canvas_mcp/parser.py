@@ -46,6 +46,7 @@ def _parse_hierarchical_format(data: dict) -> Canvas:
     canvas = Canvas(
         version=data.get("version", "2.0"),
         title=data.get("title", "Untitled Canvas"),
+        theme=data.get("theme", "dark"),
     )
 
     for net_data in data.get("networks", []):
@@ -110,6 +111,7 @@ def _parse_simple_format(data: dict) -> Canvas:
     canvas = Canvas(
         title=data.get("title", "Untitled Canvas"),
         background_color=data.get("background", "#11111b"),
+        theme=data.get("theme", "dark"),
     )
 
     # Build nodes
@@ -155,6 +157,7 @@ def canvas_to_yaml(canvas: Canvas) -> str:
         "canvas": {
             "version": canvas.version,
             "title": canvas.title,
+            "theme": canvas.theme,
             "networks": [],
         }
     }

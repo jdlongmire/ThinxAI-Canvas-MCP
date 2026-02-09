@@ -214,6 +214,66 @@ ThinxAI-Canvas-MCP/
 
 ---
 
+#### Phase 6: Theme Control & Mobile Touch Zoom (2026-02-09)
+
+**Added output theme switching and improved mobile image viewing.**
+
+##### Output Theme Control (Option C Implementation)
+
+**Problem:** All diagrams rendered with dark palette. Users needed light-background diagrams for presentations, documents, printing.
+
+**Solution:** Three-layer theme control:
+
+1. **Settings Modal** (`web/index.html`)
+   - New "Output Theme" dropdown: Dark / Light
+   - Stored in `localStorage` as `canvasbot-output-theme`
+   - Persists across sessions
+
+2. **Backend Theme Handling** (`canvas_bot.py`)
+   - `render_canvas_yaml()` accepts optional `theme` parameter
+   - `detect_theme_from_message()` - natural language detection:
+     - Light triggers: "light theme", "white background", "for presentation"
+     - Dark triggers: "dark mode", "dark theme"
+   - Natural language overrides UI setting
+
+3. **API Integration**
+   - Every chat message includes `output_theme` from settings
+   - `/api/render` endpoint accepts optional `theme` parameter
+   - YAML always records actual theme used
+
+**User Flow:**
+| Action | Result |
+|--------|--------|
+| Settings → Light | All new diagrams render light |
+| Settings → Dark | All new diagrams render dark (default) |
+| "Make it light themed" | Overrides setting for that diagram |
+
+##### Mobile Touch Zoom (Panzoom)
+
+**Problem:** iPhone users couldn't pinch-to-zoom on enlarged diagram images.
+
+**Solution:** Integrated `panzoom` library (~3KB gzipped)
+
+**Changes to `web/index.html`:**
+- Added panzoom CDN: `unpkg.com/panzoom@9.4.3`
+- New modal layout with header bar
+- Hint text: "Pinch to zoom • Drag to pan • Double-tap to reset"
+- "Open in New Tab" button for browser-native controls
+- "✕ Close" button (red)
+
+**Touch Gestures:**
+- Pinch-to-zoom on mobile
+- Drag to pan when zoomed
+- Scroll wheel zoom on desktop
+- Max zoom: 5x, Min zoom: 0.5x
+
+**Ways to Close Modal:**
+- Click "✕ Close" button
+- Press Escape key
+- Click outside image (dark background)
+
+---
+
 ## Future Enhancements (Backlog)
 
 - [ ] Session persistence (resume conversations)

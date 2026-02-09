@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .models import Canvas, CanvasNode, CanvasFactory, CanvasMachine, ContainerStyle, NodeStyle
 from .organize import organize_canvas
+from .themes import get_theme, ThemePalette
 
 
 # --- Font handling ---
@@ -192,6 +193,7 @@ class CanvasRenderer:
         self.font_title = _load_bold_font(int(28 * scale))
         self.font_container = _load_bold_font(int(16 * scale))
         self.font_small = _load_font(int(14 * scale))
+        self.theme: ThemePalette = get_theme("dark")  # Default theme
 
     def compute_node_size(self, node: CanvasNode) -> tuple[float, float]:
         """Measure the required width and height for a node based on its text.
@@ -293,6 +295,9 @@ class CanvasRenderer:
             spacing_level: Spacing level for organize ("node", "container", "network").
             orientation: Layout direction — "horizontal" or "vertical" (top→bottom).
         """
+        # Set theme from canvas
+        self.theme = get_theme(canvas.theme)
+
         # Auto-size nodes to fit their text content BEFORE layout
         self.auto_size_nodes(canvas)
 
@@ -309,8 +314,9 @@ class CanvasRenderer:
         img_width = int(bounds["width"] * self.scale)
         img_height = int(bounds["height"] * self.scale)
 
-        # Create image
-        img = Image.new("RGBA", (img_width, img_height), _hex_to_rgba(canvas.background_color))
+        # Create image - use theme background color
+        bg_color = self.theme.background
+        img = Image.new("RGBA", (img_width, img_height), _hex_to_rgba(bg_color))
         draw = ImageDraw.Draw(img)
 
         # Offset for translating node coordinates to image space
@@ -398,7 +404,7 @@ class CanvasRenderer:
         bbox = self.font_title.getbbox(title)
         tw = bbox[2] - bbox[0]
         x = (img_width - tw) / 2
-        draw.text((x, 15 * self.scale), title, fill="#cdd6f4", font=self.font_title)
+        draw.text((x, 15 * self.scale), title, fill=self.theme.title_color, font=self.font_title)
 
     def _get_container_bounds(self, nodes: list[CanvasNode]) -> tuple[float, float, float, float]:
         """Get bounding box for a set of nodes."""
@@ -421,12 +427,12 @@ class CanvasRenderer:
         x2 = (x2 + ox) * self.scale
         y2 = (y2 + oy) * self.scale
 
-        # Resolve style — custom overrides per-field, fallback to defaults
+        # Resolve style — custom overrides per-field, fallback to theme defaults
         s = machine.style
-        fill_hex = s.fill_color if s and s.fill_color else "#181825"
-        fill_alpha = s.alpha if s and s.alpha is not None else 120
-        outline_color = s.border_color if s and s.border_color else "#313244"
-        label_color = s.label_color if s and s.label_color else "#6c7086"
+        fill_hex = s.fill_color if s and s.fill_color else self.theme.machine_fill
+        fill_alpha = s.alpha if s and s.alpha is not None else self.theme.machine_fill_alpha
+        outline_color = s.border_color if s and s.border_color else self.theme.machine_border
+        label_color = s.label_color if s and s.label_color else self.theme.machine_label
         radius = s.corner_radius if s and s.corner_radius is not None else 8
         border_w = s.border_width if s and s.border_width is not None else 1
 
@@ -462,10 +468,10 @@ class CanvasRenderer:
         x2 = (x2 + expand + ox) * self.scale
         y2 = (y2 + expand + oy) * self.scale
 
-        # Resolve style — custom overrides per-field, fallback to defaults
+        # Resolve style — custom overrides per-field, fallback to theme defaults
         s = factory.style
-        outline_color = s.border_color if s and s.border_color else "#45475a"
-        label_color = s.label_color if s and s.label_color else "#a6adc8"
+        outline_color = s.border_color if s and s.border_color else self.theme.factory_border
+        label_color = s.label_color if s and s.label_color else self.theme.factory_label
         radius = s.corner_radius if s and s.corner_radius is not None else 12
         border_w = s.border_width if s and s.border_width is not None else 1
 
@@ -675,11 +681,14 @@ class CanvasRenderer:
 
         s = self.scale  # shorthand
 
+        # Use theme-aware fill color (custom style overrides theme)
+        fill_color = style.fill_color if node.style and node.style.fill_color else self.theme.node_fill
+
         # Node background
         _draw_rounded_rect(
             draw, (x, y, x + w, y + h),
             radius=int(style.corner_radius * s),
-            fill=style.fill_color,
+            fill=fill_color,
             outline=style.border_color,
             width=int(style.border_width * s),
         )
@@ -694,12 +703,14 @@ class CanvasRenderer:
         )
 
         # Label — positioned consistently with compute_node_size
+        # Use theme-aware label color
         label = node.get_label()
         label_y = y + bar_height + int(self.NODE_LABEL_GAP * s)
+        label_color = style.label_color if node.style and node.style.label_color else self.theme.node_label
         draw.text(
             (x + int(self.NODE_PADDING * s), label_y),
             label,
-            fill=style.label_color or "#cdd6f4",
+            fill=label_color,
             font=self.font_label,
         )
 
@@ -724,7 +735,7 @@ class CanvasRenderer:
                 draw.text(
                     (x + int(self.NODE_PADDING * s), content_y + i * line_height),
                     line,
-                    fill="#a6adc8",
+                    fill=self.theme.body_text_color,
                     font=self.font_body,
                 )
 

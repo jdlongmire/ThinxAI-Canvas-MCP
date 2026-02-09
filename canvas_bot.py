@@ -92,14 +92,24 @@ def save_message(user_id: str, role: str, content: str):
         logger.error(f"Error saving message: {e}")
 
 
-def render_canvas_yaml(yaml_content: str, output_name: str = None) -> tuple[str, str]:
+def render_canvas_yaml(yaml_content: str, output_name: str = None, theme: str = None) -> tuple[str, str]:
     """
     Render a Canvas YAML to PNG.
+
+    Args:
+        yaml_content: YAML defining the diagram
+        output_name: Optional filename (without extension)
+        theme: 'dark' or 'light' - overrides theme in YAML if provided
 
     Returns: (image_path, error_message)
     """
     try:
         canvas = parse_yaml(yaml_content)
+
+        # Override theme if specified (from UI preference or natural language)
+        if theme and theme in ('dark', 'light'):
+            canvas.theme = theme
+
         renderer = CanvasRenderer(scale=1.5)
 
         # Generate filename
@@ -367,9 +377,46 @@ async def call_claude_streaming(prompt: str, skip_permissions: bool = True, on_e
     return result_text, process.returncode, stderr.decode() if stderr else ""
 
 
-def extract_and_render_yaml(response_text: str) -> tuple[str, str]:
+def detect_theme_from_message(message: str) -> str | None:
+    """
+    Detect if user requested a specific theme via natural language.
+
+    Returns: 'dark', 'light', or None if no theme mentioned
+    """
+    message_lower = message.lower()
+
+    # Light theme patterns
+    light_patterns = [
+        'light theme', 'light mode', 'light color', 'light background',
+        'white background', 'bright theme', 'bright background',
+        'for presentation', 'for print', 'printable',
+        'make it light', 'use light', 'switch to light'
+    ]
+
+    # Dark theme patterns
+    dark_patterns = [
+        'dark theme', 'dark mode', 'dark color', 'dark background',
+        'black background', 'make it dark', 'use dark', 'switch to dark'
+    ]
+
+    for pattern in light_patterns:
+        if pattern in message_lower:
+            return 'light'
+
+    for pattern in dark_patterns:
+        if pattern in message_lower:
+            return 'dark'
+
+    return None
+
+
+def extract_and_render_yaml(response_text: str, theme: str = None) -> tuple[str, str]:
     """
     Extract YAML from response and render if found.
+
+    Args:
+        response_text: Claude's response that may contain YAML
+        theme: 'dark' or 'light' to override theme in YAML
 
     Returns: (modified_response, image_path or None)
     """
@@ -385,7 +432,7 @@ def extract_and_render_yaml(response_text: str) -> tuple[str, str]:
 
     # Check if it looks like a canvas definition
     if 'nodes:' in yaml_content or 'canvas:' in yaml_content:
-        image_path, error = render_canvas_yaml(yaml_content)
+        image_path, error = render_canvas_yaml(yaml_content, theme=theme)
 
         if image_path:
             # Add image action if not already present
@@ -512,6 +559,13 @@ async def handle_message_stream(request):
         user_message = data.get("message", "").strip()
         image_base64 = data.get("image", None)
         image_name = data.get("image_name", None)
+        output_theme = data.get("output_theme", "dark")  # Default to dark
+
+        # Natural language can override UI setting
+        nl_theme = detect_theme_from_message(user_message)
+        if nl_theme:
+            output_theme = nl_theme
+            logger.info(f"Theme override from natural language: {output_theme}")
 
         if not user_message and not image_base64:
             await response.write(b'data: {"type":"error","message":"No message provided"}\n\n')
@@ -546,7 +600,7 @@ async def handle_message_stream(request):
             return response
 
         # Extract and render any YAML in the response
-        result, image_path = extract_and_render_yaml(result)
+        result, image_path = extract_and_render_yaml(result, theme=output_theme)
 
         # Clean response
         result = re.sub(r'\[ACTION:check_inbox(?::\d+)?\]\n?', '', result)
@@ -606,11 +660,12 @@ async def handle_render(request):
         data = await request.json()
         yaml_content = data.get("yaml", "")
         name = data.get("name", None)
+        theme = data.get("theme", None)  # Optional theme override
 
         if not yaml_content:
             return web.json_response({"error": "No YAML provided"}, status=400)
 
-        image_path, error = render_canvas_yaml(yaml_content, name)
+        image_path, error = render_canvas_yaml(yaml_content, name, theme=theme)
 
         if error:
             return web.json_response({"error": error}, status=400)
