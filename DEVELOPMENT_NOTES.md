@@ -4,7 +4,7 @@
 
 **Canvas Bot** is a web-based diagram assistant that uses Claude CLI and Canvas-MCP to convert user requests and sketches into professional hierarchical diagrams.
 
-**Live URL:** http://100.108.64.24:8766 (Tailscale VPN)
+**Live URL:** http://100.114.240.59:8766 (Tailscale VPN - JDL-Workstation-1)
 **Local URL:** http://localhost:8766
 
 ---
@@ -54,7 +54,85 @@ Created Canvas Bot as a standalone web application, using the proven Draw Bot ar
 
 ---
 
-#### Phase 2: Sketch Upload Feature
+#### Phase 2: XMI Export for Cameo Modeler Integration
+
+**Added XMI (XML Metadata Interchange) export capability for enterprise modeling tool integration.**
+
+**Backend Changes to `canvas_bot.py`:**
+- Added import: `from canvas_mcp.xmi_exporter import export_to_xmi`
+- New `/api/export-xmi` POST endpoint
+- Accepts parsed Canvas YAML, returns XMI 2.1 file
+
+**New File: `src/canvas_mcp/xmi_exporter.py`:**
+- UML 2.1 + SysML namespace headers for Cameo compatibility
+- Semantic node type mapping:
+  - `input` → `uml:InitialNode`
+  - `output` → `uml:ActivityFinalNode`
+  - `decision` → `uml:DecisionNode`
+  - `process/ai/source/static` → `uml:OpaqueAction` (with stereotypes)
+- Full hierarchy preserved: Canvas → Network → Factory → Machine → Node maps to Model → Package → Package → Activity → Node
+- `ControlFlow` edges for connections between nodes
+
+**UI Changes to `web/index.html`:**
+- "XMI" button (teal) next to "PNG" button for each diagram
+- `lastYamlContent` state variable to track exportable YAML
+- `exportToXMI()` function handles download
+
+**User Flow:**
+1. Generate diagram as usual
+2. Click teal "XMI" button next to diagram
+3. Downloads `.xmi` file compatible with Cameo Systems Modeler, MagicDraw
+
+---
+
+#### Phase 3: UI Refinements
+
+**Input Improvements:**
+- Increased input box height from 40px to 52px for mobile usability
+
+**Navigation Cleanup:**
+- Removed "Legend" button from top menu (node types still documented in welcome message)
+
+**Quick Action Buttons:**
+- Replaced "Multi-Stage" and "Data Integration" bubbles with:
+  - **TOGAF** - Enterprise architecture diagrams
+  - **UAF** - Unified Architecture Framework diagrams
+
+---
+
+#### Phase 4: Draw.io Integration
+
+**Added embedded Draw.io editor for freeform diagramming.**
+
+**UI Architecture:**
+- Three-tab menu system: Menu (main), Draw.io Editor, Canvas Bot
+- Draw.io loads in iframe from `https://embed.diagrams.net/`
+- Custom configuration via `DRAWIO_CONFIG`:
+  - Catppuccin Mocha dark theme
+  - Grid enabled
+  - UML/flowchart shapes in sidebar
+  - Minimal toolbar
+
+**Draw.io Toolbar Features:**
+- "Draw.io ▼" dropdown menu containing:
+  - **New Diagram** - Clears canvas with confirmation
+  - **Open Diagram** - Load `.drawio` or `.xml` files
+  - **Export PNG** - Export current diagram as PNG
+  - **Send to Chat** - Convert diagram to PNG and send to Canvas Bot
+
+**PostMessage Protocol:**
+- `export: 'png'` → Receive base64 PNG
+- `export: 'xmlsvg'` → Get editable XML
+- `action: 'load'` → Load diagram from file/blank
+
+**Mobile Responsiveness (2026-02-08):**
+- Consolidated toolbar buttons into single dropdown menu
+- Prevents horizontal overflow on narrow screens
+- Clean mobile UX with all actions accessible via "Draw.io ▼"
+
+---
+
+#### Phase 5: Sketch Upload Feature
 
 **Added image attachment capability for sketch-to-diagram conversion.**
 

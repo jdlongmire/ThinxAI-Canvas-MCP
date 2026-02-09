@@ -26,6 +26,7 @@ sys.path.insert(0, str(SCRIPT_DIR / 'src'))
 
 from canvas_mcp.parser import parse_yaml
 from canvas_mcp.renderer import CanvasRenderer
+from canvas_mcp.xmi_exporter import export_to_xmi
 
 # Configure logging
 logging.basicConfig(
@@ -650,6 +651,45 @@ async def handle_image(request):
     return web.FileResponse(path)
 
 
+async def handle_download(request):
+    """Serve images as downloadable attachments (mobile-friendly)."""
+    path = request.query.get('path', '')
+    filename = request.query.get('filename', 'diagram.png')
+
+    if not path:
+        return web.Response(text="No path specified", status=400)
+
+    path = Path(path).resolve()
+
+    # Security: only allow certain directories
+    allowed_roots = [
+        DIAGRAMS_DIR.resolve(),
+        UPLOADS_DIR.resolve(),
+        SCRIPT_DIR.resolve(),
+    ]
+
+    allowed = any(
+        str(path).startswith(str(root))
+        for root in allowed_roots
+    )
+
+    if not allowed or not path.exists():
+        return web.Response(text="File not found or not allowed", status=404)
+
+    # Read file and serve with download headers
+    with open(path, 'rb') as f:
+        content = f.read()
+
+    return web.Response(
+        body=content,
+        headers={
+            'Content-Type': 'image/png',
+            'Content-Disposition': f'attachment; filename="{filename}"',
+            'Content-Length': str(len(content)),
+        }
+    )
+
+
 async def handle_static_file(request):
     """Serve static files from web directory."""
     filename = request.match_info['filename']
@@ -659,9 +699,78 @@ async def handle_static_file(request):
     return web.Response(text="File not found", status=404)
 
 
+async def handle_export_xmi(request):
+    """Export a diagram to XMI format for Cameo Modeler integration."""
+    try:
+        data = await request.json()
+        yaml_content = data.get("yaml", "")
+        name = data.get("name", "diagram")
+
+        if not yaml_content:
+            return web.json_response({"error": "No YAML provided"}, status=400)
+
+        # Parse YAML to Canvas
+        canvas = parse_yaml(yaml_content)
+
+        # Export to XMI
+        xmi_content = export_to_xmi(canvas, pretty=True)
+
+        # Generate filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{name}_{timestamp}.xmi"
+        xmi_path = DIAGRAMS_DIR / filename
+
+        # Save to file
+        with open(xmi_path, 'w', encoding='utf-8') as f:
+            f.write(xmi_content)
+
+        logger.info(f"Exported XMI: {xmi_path}")
+
+        return web.json_response({
+            "success": True,
+            "path": str(xmi_path),
+            "filename": filename
+        })
+
+    except Exception as e:
+        logger.error(f"XMI export error: {e}")
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def handle_download_xmi(request):
+    """Serve XMI files as downloadable attachments."""
+    path = request.query.get('path', '')
+    filename = request.query.get('filename', 'diagram.xmi')
+
+    if not path:
+        return web.Response(text="No path specified", status=400)
+
+    path = Path(path).resolve()
+
+    # Security: only allow diagrams directory
+    if not str(path).startswith(str(DIAGRAMS_DIR.resolve())):
+        return web.Response(text="File not allowed", status=403)
+
+    if not path.exists():
+        return web.Response(text="File not found", status=404)
+
+    with open(path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    return web.Response(
+        body=content,
+        headers={
+            'Content-Type': 'application/xml',
+            'Content-Disposition': f'attachment; filename="{filename}"',
+            'Content-Length': str(len(content.encode('utf-8'))),
+        }
+    )
+
+
 def create_app():
     """Create the aiohttp application."""
-    app = web.Application()
+    # Allow up to 20MB request body for image uploads
+    app = web.Application(client_max_size=20 * 1024 * 1024)
 
     # API routes
     app.router.add_get('/api/status', handle_status)
@@ -670,6 +779,9 @@ def create_app():
     app.router.add_post('/api/message/stream', handle_message_stream)
     app.router.add_post('/api/render', handle_render)
     app.router.add_get('/api/image', handle_image)
+    app.router.add_get('/api/download', handle_download)
+    app.router.add_post('/api/export/xmi', handle_export_xmi)
+    app.router.add_get('/api/download/xmi', handle_download_xmi)
 
     # Static files and pages
     app.router.add_get('/', handle_index)

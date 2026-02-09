@@ -79,6 +79,43 @@
             font-weight: 400;
         }
 
+        /* Mode tabs */
+        .mode-tabs {
+            display: flex;
+            background: var(--surface0);
+            border-radius: 8px;
+            padding: 3px;
+            gap: 2px;
+        }
+
+        .mode-tab {
+            background: transparent;
+            color: var(--subtext0);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-tab:hover {
+            color: var(--text);
+            background: var(--surface1);
+        }
+
+        .mode-tab.active {
+            background: var(--mauve);
+            color: var(--crust);
+        }
+
+        .mode-tab .icon {
+            font-size: 14px;
+        }
+
         nav {
             margin-left: auto;
             display: flex;
@@ -100,6 +137,92 @@
             color: var(--text);
             border-color: var(--surface1);
             background: var(--surface0);
+        }
+
+        /* Dropdown menu */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background: transparent;
+            color: var(--subtext0);
+            border: 1px solid var(--surface0);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropdown-toggle:hover {
+            color: var(--text);
+            border-color: var(--surface1);
+            background: var(--surface0);
+        }
+
+        .dropdown-toggle::after {
+            content: '▾';
+            font-size: 10px;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: var(--mantle);
+            border: 1px solid var(--surface0);
+            border-radius: 8px;
+            min-width: 160px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            overflow: hidden;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .dropdown-item:hover {
+            background: var(--surface0);
+        }
+
+        .dropdown-item.active {
+            background: rgba(203, 166, 247, 0.15);
+            color: var(--mauve);
+        }
+
+        .dropdown-item .icon {
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--surface0);
+            margin: 4px 0;
         }
 
         #chat {
@@ -307,12 +430,12 @@
             background: var(--base);
             border: 1px solid var(--surface0);
             border-radius: 20px;
-            padding: 10px 14px;
+            padding: 12px 14px;
             color: var(--text);
             font-size: 14px;
             outline: none;
             resize: none;
-            min-height: 40px;
+            min-height: 52px;
             max-height: 120px;
         }
 
@@ -478,40 +601,416 @@
             color: var(--crust);
         }
 
-        /* Node type legend */
-        .legend {
+        .diagram-btn.xmi {
+            color: var(--teal);
+            border-color: var(--teal);
+        }
+
+        .diagram-btn.xmi:hover {
+            background: var(--teal);
+            color: var(--crust);
+        }
+
+        /* Modal styles */
+        .modal-overlay {
             display: none;
             position: fixed;
-            top: 60px;
-            right: 16px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 500;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
             background: var(--mantle);
             border: 1px solid var(--surface0);
-            border-radius: 8px;
-            padding: 12px;
-            z-index: 100;
-            font-size: 12px;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 85%;
+            overflow: auto;
+            padding: 20px;
+            min-width: 300px;
         }
 
-        .legend.active {
-            display: block;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--surface0);
         }
 
-        .legend h4 {
-            margin-bottom: 8px;
+        .modal-header h2 {
             color: var(--mauve);
-        }
-
-        .legend-item {
+            font-size: 18px;
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--overlay1);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .modal-body {
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .modal-body h3 {
+            color: var(--lavender);
+            margin: 16px 0 8px 0;
+            font-size: 15px;
+        }
+
+        .modal-body p {
+            margin: 8px 0;
+        }
+
+        .modal-body ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .modal-body li {
             margin: 4px 0;
         }
 
-        .legend-color {
-            width: 16px;
-            height: 16px;
+        .modal-body kbd {
+            background: var(--surface0);
+            padding: 2px 6px;
             border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .modal-body code {
+            background: var(--crust);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Settings specific */
+        .setting-group {
+            margin: 16px 0;
+        }
+
+        .setting-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .setting-group select,
+        .setting-group input[type="text"] {
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .setting-group select:focus,
+        .setting-group input[type="text"]:focus {
+            border-color: var(--mauve);
+            outline: none;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--surface0);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--mauve);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* History list */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--surface0);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .history-item:hover {
+            background: var(--surface0);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-date {
+            font-size: 11px;
+            color: var(--overlay0);
+        }
+
+        .history-preview {
+            font-size: 13px;
+            color: var(--subtext0);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--overlay0);
+            padding: 24px;
+        }
+
+        /* Share link */
+        .share-link {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .share-link input {
+            flex: 1;
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .share-link button {
+            background: var(--mauve);
+            color: var(--crust);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .share-link button:hover {
+            opacity: 0.9;
+        }
+
+        /* Draw.io Editor Mode */
+        .editor-container {
+            display: none;
+            flex: 1;
+            position: relative;
+            background: var(--base);
+        }
+
+        .editor-container.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawio-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--mantle);
+            border-bottom: 1px solid var(--surface0);
+        }
+
+        .editor-toolbar .btn {
+            background: var(--surface0);
+            color: var(--text);
+            border: 1px solid var(--surface1);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .editor-toolbar .btn:hover {
+            background: var(--surface1);
+            border-color: var(--surface2);
+        }
+
+        .editor-toolbar .btn.primary {
+            background: var(--mauve);
+            color: var(--crust);
+            border-color: var(--mauve);
+        }
+
+        .editor-toolbar .btn.primary:hover {
+            opacity: 0.9;
+        }
+
+        .editor-toolbar .spacer {
+            flex: 1;
+        }
+
+        .editor-toolbar .status {
+            font-size: 12px;
+            color: var(--overlay0);
+        }
+
+        /* Draw.io toolbar dropdown */
+        .toolbar-dropdown {
+            position: relative;
+        }
+
+        .toolbar-dropdown-toggle {
+            background: var(--surface0);
+            color: var(--text);
+            border: 1px solid var(--surface1);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-dropdown-toggle:hover {
+            background: var(--surface1);
+        }
+
+        .toolbar-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--surface0);
+            border: 1px solid var(--surface1);
+            border-radius: 8px;
+            min-width: 160px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-top: 4px;
+        }
+
+        .toolbar-dropdown-menu.show {
+            display: block;
+        }
+
+        .toolbar-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--text);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .toolbar-dropdown-item:hover {
+            background: var(--surface1);
+        }
+
+        .toolbar-dropdown-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .toolbar-dropdown-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .toolbar-dropdown-divider {
+            height: 1px;
+            background: var(--surface1);
+            margin: 4px 0;
+        }
+
+        /* Chat container for toggle visibility */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-container.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -523,54 +1022,276 @@
             <span class="subtitle">Hierarchical System Diagrams</span>
         </h1>
         <nav>
-            <button onclick="toggleLegend()">Legend</button>
-            <button onclick="clearHistory()">Clear</button>
+            <div class="dropdown" id="menu-dropdown">
+                <button class="dropdown-toggle" onclick="toggleMenu()">Menu</button>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <button class="dropdown-item" id="menu-chat" onclick="switchMode('chat'); closeMenu()">
+                        <span class="icon">💬</span> Chat Mode
+                    </button>
+                    <button class="dropdown-item" id="menu-editor" onclick="switchMode('editor'); closeMenu()">
+                        <span class="icon">✏️</span> Draw.io Editor
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="exportAllDiagrams(); closeMenu()">
+                        <span class="icon">📦</span> Export All
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="openSettings(); closeMenu()">
+                        <span class="icon">⚙️</span> Settings
+                    </button>
+                    <button class="dropdown-item" onclick="showHelp(); closeMenu()">
+                        <span class="icon">❓</span> Help
+                    </button>
+                    <button class="dropdown-item" onclick="showAbout(); closeMenu()">
+                        <span class="icon">ℹ️</span> About
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="showHistory(); closeMenu()">
+                        <span class="icon">📜</span> History
+                    </button>
+                    <button class="dropdown-item" onclick="shareSession(); closeMenu()">
+                        <span class="icon">🔗</span> Share
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="clearHistory(); closeMenu()">
+                        <span class="icon">🗑️</span> Clear History
+                    </button>
+                </div>
+            </div>
         </nav>
     </header>
 
-    <div class="quick-actions">
-        <button class="quick-action" data-prompt="I need a data pipeline diagram">Data Pipeline</button>
-        <button class="quick-action" data-prompt="I need an AI/ML workflow diagram">AI Workflow</button>
-        <button class="quick-action" data-prompt="I need a microservices architecture diagram">Microservices</button>
-        <button class="quick-action" data-prompt="I need a decision flow diagram">Decision Flow</button>
-        <button class="quick-action" data-prompt="I need a multi-stage processing pipeline">Multi-Stage</button>
-        <button class="quick-action" data-prompt="I need to show data integration from multiple sources">Data Integration</button>
-    </div>
+    <!-- Chat Mode Container -->
+    <div class="chat-container" id="chat-container">
+        <div class="quick-actions">
+            <button class="quick-action" data-prompt="I need a data pipeline diagram">Data Pipeline</button>
+            <button class="quick-action" data-prompt="I need an AI/ML workflow diagram">AI Workflow</button>
+            <button class="quick-action" data-prompt="I need a microservices architecture diagram">Microservices</button>
+            <button class="quick-action" data-prompt="I need a decision flow diagram">Decision Flow</button>
+            <button class="quick-action" data-prompt="I need a TOGAF enterprise architecture diagram">TOGAF</button>
+            <button class="quick-action" data-prompt="I need a UAF (Unified Architecture Framework) diagram">UAF</button>
+        </div>
 
-    <div id="chat"></div>
+        <div id="chat"></div>
 
-    <div class="image-preview" id="image-preview">
-        <div class="preview-container">
-            <img id="preview-img" src="" alt="Preview">
-            <div class="preview-info">
-                <div class="filename" id="preview-filename"></div>
-                <div class="filesize" id="preview-filesize"></div>
+        <div class="image-preview" id="image-preview">
+            <div class="preview-container">
+                <img id="preview-img" src="" alt="Preview">
+                <div class="preview-info">
+                    <div class="filename" id="preview-filename"></div>
+                    <div class="filesize" id="preview-filesize"></div>
+                </div>
+                <button class="preview-remove" onclick="removeAttachment()" title="Remove">&#10005;</button>
             </div>
-            <button class="preview-remove" onclick="removeAttachment()" title="Remove">&#10005;</button>
+        </div>
+
+        <div id="input-area">
+            <input type="file" id="file-input" accept="image/*">
+            <button id="attach-btn" title="Attach sketch or image">&#128206;</button>
+            <textarea id="message-input" placeholder="Describe or upload sketch" rows="1"></textarea>
+            <button id="send-btn" disabled>&#10148;</button>
         </div>
     </div>
 
-    <div id="input-area">
-        <input type="file" id="file-input" accept="image/*">
-        <button id="attach-btn" title="Attach sketch or image">&#128206;</button>
-        <textarea id="message-input" placeholder="Describe your diagram or attach a sketch..." rows="1"></textarea>
-        <button id="send-btn" disabled>&#10148;</button>
+    <!-- Draw.io Editor Mode Container -->
+    <div class="editor-container" id="editor-container">
+        <div class="editor-toolbar">
+            <div class="toolbar-dropdown" id="drawio-menu">
+                <button class="toolbar-dropdown-toggle" onclick="toggleDrawioMenu()">
+                    <span>📊</span> Draw.io <span style="font-size: 10px;">▼</span>
+                </button>
+                <div class="toolbar-dropdown-menu" id="drawio-dropdown-menu">
+                    <button class="toolbar-dropdown-item" onclick="newDiagram(); closeDrawioMenu()">
+                        <span>📄</span> New Diagram
+                    </button>
+                    <button class="toolbar-dropdown-item" onclick="openDiagram(); closeDrawioMenu()">
+                        <span>📂</span> Open Diagram
+                    </button>
+                    <div class="toolbar-dropdown-divider"></div>
+                    <button class="toolbar-dropdown-item" onclick="exportDiagram(); closeDrawioMenu()">
+                        <span>💾</span> Export PNG
+                    </button>
+                    <button class="toolbar-dropdown-item" onclick="exportToChat(); closeDrawioMenu()">
+                        <span>💬</span> Send to Chat
+                    </button>
+                </div>
+            </div>
+            <div class="spacer"></div>
+            <span class="status" id="editor-status">Ready</span>
+        </div>
+        <iframe
+            id="drawio-frame"
+            class="drawio-iframe"
+            src=""
+        ></iframe>
     </div>
+
+    <!-- Hidden file input for opening diagrams -->
+    <input type="file" id="diagram-file-input" accept=".drawio,.xml,.png,.svg" style="display:none">
 
     <div class="image-modal" id="image-modal">
         <img src="" alt="Fullscreen image">
     </div>
 
-    <div class="legend" id="legend">
-        <h4>Node Types</h4>
-        <div class="legend-item"><div class="legend-color" style="background: #2196F3;"></div> input - Data entry</div>
-        <div class="legend-item"><div class="legend-color" style="background: #FFC107;"></div> output - Results</div>
-        <div class="legend-item"><div class="legend-color" style="background: #00BCD4;"></div> process - Transform</div>
-        <div class="legend-item"><div class="legend-color" style="background: #F44336;"></div> decision - Branch</div>
-        <div class="legend-item"><div class="legend-color" style="background: #9C27B0;"></div> ai - AI/LLM</div>
-        <div class="legend-item"><div class="legend-color" style="background: #FF9800;"></div> source - External</div>
-        <div class="legend-item"><div class="legend-color" style="background: #4CAF50;"></div> static - Constants</div>
-        <div class="legend-item"><div class="legend-color" style="background: #999999;"></div> default - Generic</div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>⚙️ Settings</h2>
+                <button class="modal-close" onclick="closeModal('settings-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <span>Dark Mode</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="dark-mode-toggle" checked disabled>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <p style="font-size: 12px; color: var(--overlay0);">Dark mode is always on (Catppuccin Mocha)</p>
+                </div>
+
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <span>Auto-download diagrams</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-download-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <span>Show YAML in responses</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-yaml-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label>Default diagram type</label>
+                    <select id="default-diagram-type">
+                        <option value="">Ask each time</option>
+                        <option value="pipeline">Data Pipeline</option>
+                        <option value="ai">AI Workflow</option>
+                        <option value="microservices">Microservices</option>
+                        <option value="decision">Decision Flow</option>
+                        <option value="togaf">TOGAF</option>
+                        <option value="uaf">UAF</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>❓ Help</h2>
+                <button class="modal-close" onclick="closeModal('help-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <h3>Getting Started</h3>
+                <p>Describe what you want to diagram, and Canvas Bot will ask clarifying questions before generating.</p>
+
+                <h3>Quick Actions</h3>
+                <p>Use the buttons below the header for common diagram types:</p>
+                <ul>
+                    <li><strong>Data Pipeline</strong> - ETL, data flows, processing chains</li>
+                    <li><strong>AI Workflow</strong> - ML pipelines, LLM chains, AI systems</li>
+                    <li><strong>Microservices</strong> - Service architecture, APIs</li>
+                    <li><strong>Decision Flow</strong> - Branching logic, workflows</li>
+                    <li><strong>TOGAF</strong> - Enterprise architecture</li>
+                    <li><strong>UAF</strong> - Unified Architecture Framework</li>
+                </ul>
+
+                <h3>Keyboard Shortcuts</h3>
+                <ul>
+                    <li><kbd>Enter</kbd> - Send message</li>
+                    <li><kbd>Shift</kbd>+<kbd>Enter</kbd> - New line</li>
+                </ul>
+
+                <h3>Image Upload</h3>
+                <p>Click 📎 or drag-and-drop a sketch to convert it to a professional diagram.</p>
+
+                <h3>Exporting</h3>
+                <ul>
+                    <li><strong>PNG</strong> - Download image for presentations</li>
+                    <li><strong>XMI</strong> - Export to Cameo Systems Modeler</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal-overlay" id="about-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>ℹ️ About Canvas Bot</h2>
+                <button class="modal-close" onclick="closeModal('about-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Canvas Bot</strong> is a conversational diagram generator powered by Claude AI.</p>
+
+                <h3>Version</h3>
+                <p><code>1.2.0</code></p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li>Hierarchical system diagrams with semantic color-coding</li>
+                    <li>Sketch-to-diagram conversion</li>
+                    <li>XMI export for Cameo Systems Modeler</li>
+                    <li>TOGAF & UAF enterprise architecture support</li>
+                </ul>
+
+                <h3>Part of ThinxAI</h3>
+                <p>Canvas Bot is part of the ThinxAI infrastructure.</p>
+
+                <h3>Credits</h3>
+                <p>Built with Claude Code • Theme: Catppuccin Mocha</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="history-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📜 Session History</h2>
+                <button class="modal-close" onclick="closeModal('history-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-list" id="history-list">
+                    <div class="empty-state">No previous sessions found.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🔗 Share Session</h2>
+                <button class="modal-close" onclick="closeModal('share-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Share your current session diagrams with others.</p>
+                <div class="share-link">
+                    <input type="text" id="share-url" readonly placeholder="Generating link...">
+                    <button onclick="copyShareLink()">Copy</button>
+                </div>
+                <p style="font-size: 12px; color: var(--overlay0); margin-top: 12px;">
+                    Note: Share links are temporary and expire after 24 hours.
+                </p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -580,7 +1301,6 @@
         const sendBtn = document.getElementById('send-btn');
         const imageModal = document.getElementById('image-modal');
         const modalImg = imageModal.querySelector('img');
-        const legend = document.getElementById('legend');
         const attachBtn = document.getElementById('attach-btn');
         const fileInput = document.getElementById('file-input');
         const imagePreview = document.getElementById('image-preview');
@@ -591,6 +1311,39 @@
         let isSending = false;
         let attachedFile = null;
         let attachedBase64 = null;
+        let lastYamlContent = null;  // Track YAML for XMI export
+        const dropdownMenu = document.getElementById('dropdown-menu');
+
+        function toggleMenu() {
+            dropdownMenu.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            dropdownMenu.classList.remove('active');
+        }
+
+        // Draw.io toolbar dropdown functions
+        const drawioDropdownMenu = document.getElementById('drawio-dropdown-menu');
+
+        function toggleDrawioMenu() {
+            drawioDropdownMenu.classList.toggle('show');
+        }
+
+        function closeDrawioMenu() {
+            drawioDropdownMenu.classList.remove('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('menu-dropdown');
+            if (!dropdown.contains(e.target)) {
+                closeMenu();
+            }
+            const drawioMenu = document.getElementById('drawio-menu');
+            if (drawioMenu && !drawioMenu.contains(e.target)) {
+                closeDrawioMenu();
+            }
+        });
 
         // Configure marked
         marked.setOptions({
@@ -611,7 +1364,6 @@
 
 **Quick tips:**
 - Use the buttons above for common diagram types
-- Click "Legend" to see node type colors
 - Click any diagram to view fullscreen, hover for download
 
 What would you like me to diagram?`, 'assistant');
@@ -707,10 +1459,6 @@ What would you like me to diagram?`, 'assistant');
             imageModal.classList.add('active');
         }
 
-        function toggleLegend() {
-            legend.classList.toggle('active');
-        }
-
         async function clearHistory() {
             if (!confirm('Clear conversation history?')) return;
             try {
@@ -731,27 +1479,74 @@ What would you like me to diagram?`, 'assistant');
                     return;
                 }
 
-                const response = await fetch(imgSrc);
-                if (!response.ok) throw new Error('Download failed');
-
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
                 const filename = imagePath.split('/').pop() || 'diagram.png';
 
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(blobUrl);
+                // Mobile-friendly: open download URL in new tab
+                // Server provides Content-Disposition: attachment header
+                const downloadUrl = `${API_BASE}/api/download?path=${encodeURIComponent(imagePath)}&filename=${encodeURIComponent(filename)}`;
+
+                // For iOS/mobile, window.open works better than anchor click
+                const newWindow = window.open(downloadUrl, '_blank');
+
+                // Fallback if popup blocked
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    // Try anchor as fallback
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.target = '_blank';
+                    a.rel = 'noopener';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
             } catch (e) {
                 console.error('Download error:', e);
                 alert('Download failed: ' + e.message);
             }
         }
 
-        function createDiagramContainer(imgSrc, imgPath) {
+        async function exportToXMI(yamlContent) {
+            if (!yamlContent) {
+                alert('No diagram YAML available for export. Generate a diagram first.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/export/xmi`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ yaml: yamlContent, name: 'diagram' })
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    alert('XMI export failed: ' + (error.error || res.statusText));
+                    return;
+                }
+
+                const result = await res.json();
+                if (result.success && result.path) {
+                    // Download the XMI file
+                    const downloadUrl = `${API_BASE}/api/download/xmi?path=${encodeURIComponent(result.path)}&filename=${encodeURIComponent(result.filename)}`;
+                    const newWindow = window.open(downloadUrl, '_blank');
+
+                    if (!newWindow || newWindow.closed) {
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.target = '_blank';
+                        a.rel = 'noopener';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                }
+            } catch (e) {
+                console.error('XMI export error:', e);
+                alert('XMI export failed: ' + e.message);
+            }
+        }
+
+        function createDiagramContainer(imgSrc, imgPath, yamlContent) {
             const container = document.createElement('div');
             container.className = 'diagram-container';
 
@@ -772,7 +1567,17 @@ What would you like me to diagram?`, 'assistant');
                 downloadDiagram(imgSrc);
             });
 
+            const xmiBtn = document.createElement('button');
+            xmiBtn.className = 'diagram-btn xmi';
+            xmiBtn.innerHTML = '&#8681; XMI';
+            xmiBtn.title = 'Export to XMI for Cameo Modeler';
+            xmiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportToXMI(yamlContent || lastYamlContent);
+            });
+
             actions.appendChild(pngBtn);
+            actions.appendChild(xmiBtn);
             container.appendChild(img);
             container.appendChild(actions);
 
@@ -787,6 +1592,16 @@ What would you like me to diagram?`, 'assistant');
                 images.push(match[1]);
             }
             content = content.replace(imagePattern, '');
+
+            // Extract YAML for XMI export
+            const yamlPattern = /```ya?ml\n([\s\S]*?)```/g;
+            const yamlMatches = content.match(yamlPattern);
+            if (yamlMatches && yamlMatches.length > 0) {
+                // Get the last YAML block (most likely the final version)
+                const lastMatch = yamlMatches[yamlMatches.length - 1];
+                lastYamlContent = lastMatch.replace(/```ya?ml\n/, '').replace(/```$/, '').trim();
+            }
+
             return { content, images };
         }
 
@@ -821,10 +1636,10 @@ What would you like me to diagram?`, 'assistant');
                 const { content: cleanContent, images } = processImages(content);
                 msg.innerHTML = marked.parse(cleanContent);
 
-                // Add diagrams with download buttons
+                // Add diagrams with download buttons (including XMI export)
                 images.forEach(imgPath => {
                     const imgSrc = `/api/image?path=${encodeURIComponent(imgPath)}`;
-                    const container = createDiagramContainer(imgSrc, imgPath);
+                    const container = createDiagramContainer(imgSrc, imgPath, lastYamlContent);
                     msg.appendChild(container);
                 });
 
@@ -976,9 +1791,403 @@ What would you like me to diagram?`, 'assistant');
             updateSendButton();
         }
 
+        // Modal functions
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Close modals on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+            }
+        });
+
+        // Settings
+        function openSettings() {
+            // Load saved settings
+            const autoDownload = localStorage.getItem('canvasbot-auto-download') === 'true';
+            const showYaml = localStorage.getItem('canvasbot-show-yaml') !== 'false';
+            const defaultType = localStorage.getItem('canvasbot-default-type') || '';
+
+            document.getElementById('auto-download-toggle').checked = autoDownload;
+            document.getElementById('show-yaml-toggle').checked = showYaml;
+            document.getElementById('default-diagram-type').value = defaultType;
+
+            openModal('settings-modal');
+        }
+
+        // Save settings on change
+        document.getElementById('auto-download-toggle')?.addEventListener('change', (e) => {
+            localStorage.setItem('canvasbot-auto-download', e.target.checked);
+        });
+
+        document.getElementById('show-yaml-toggle')?.addEventListener('change', (e) => {
+            localStorage.setItem('canvasbot-show-yaml', e.target.checked);
+        });
+
+        document.getElementById('default-diagram-type')?.addEventListener('change', (e) => {
+            localStorage.setItem('canvasbot-default-type', e.target.value);
+        });
+
+        // Help
+        function showHelp() {
+            openModal('help-modal');
+        }
+
+        // About
+        function showAbout() {
+            openModal('about-modal');
+        }
+
+        // History
+        async function showHistory() {
+            const historyList = document.getElementById('history-list');
+
+            try {
+                const res = await fetch(`${API_BASE}/api/sessions`);
+                if (res.ok) {
+                    const sessions = await res.json();
+                    if (sessions.length > 0) {
+                        historyList.innerHTML = sessions.map(s => `
+                            <div class="history-item" onclick="loadSession('${s.id}')">
+                                <div class="history-date">${new Date(s.timestamp).toLocaleString()}</div>
+                                <div class="history-preview">${s.preview || 'No preview'}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        historyList.innerHTML = '<div class="empty-state">No previous sessions found.</div>';
+                    }
+                } else {
+                    historyList.innerHTML = '<div class="empty-state">Could not load history.</div>';
+                }
+            } catch (e) {
+                historyList.innerHTML = '<div class="empty-state">History feature coming soon.</div>';
+            }
+
+            openModal('history-modal');
+        }
+
+        async function loadSession(sessionId) {
+            // Future: Load a specific session
+            closeModal('history-modal');
+            addMessage('Session loading is coming in a future update.', 'system');
+        }
+
+        // Share
+        async function shareSession() {
+            const shareUrl = document.getElementById('share-url');
+            shareUrl.value = 'Generating...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/share`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    shareUrl.value = data.url || `${window.location.origin}/share/${data.id}`;
+                } else {
+                    shareUrl.value = `${window.location.origin}#session-${Date.now()}`;
+                }
+            } catch (e) {
+                // Generate a placeholder URL
+                shareUrl.value = `${window.location.origin}#session-${Date.now()}`;
+            }
+
+            openModal('share-modal');
+        }
+
+        function copyShareLink() {
+            const shareUrl = document.getElementById('share-url');
+            shareUrl.select();
+            document.execCommand('copy');
+
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = originalText; }, 1500);
+        }
+
+        // Export All
+        async function exportAllDiagrams() {
+            const diagrams = document.querySelectorAll('.diagram-container img');
+            if (diagrams.length === 0) {
+                addMessage('No diagrams to export. Generate some diagrams first!', 'system');
+                return;
+            }
+
+            addMessage(`Exporting ${diagrams.length} diagram(s)...`, 'system');
+
+            for (let i = 0; i < diagrams.length; i++) {
+                const img = diagrams[i];
+                try {
+                    await downloadDiagram(img.src);
+                    // Small delay between downloads
+                    await new Promise(r => setTimeout(r, 500));
+                } catch (e) {
+                    console.error('Export failed for diagram', i, e);
+                }
+            }
+
+            addMessage('Export complete! Check your downloads folder.', 'system');
+        }
+
         // Initialize
         checkStatus();
         setInterval(checkStatus, 30000);
+
+        // ==========================================
+        // Draw.io Editor Integration
+        // ==========================================
+
+        const DRAWIO_URL = 'https://embed.diagrams.net/?embed=1&ui=dark&spin=1&modified=unsavedChanges&proto=json&libraries=1';
+        let drawioFrame = null;
+        let currentDiagramXml = null;
+        let editorReady = false;
+        let currentMode = 'chat';
+
+        // Mode switching
+        function switchMode(mode) {
+            currentMode = mode;
+            const chatContainer = document.getElementById('chat-container');
+            const editorContainer = document.getElementById('editor-container');
+            const menuChat = document.getElementById('menu-chat');
+            const menuEditor = document.getElementById('menu-editor');
+
+            if (mode === 'chat') {
+                chatContainer.classList.remove('hidden');
+                editorContainer.classList.remove('active');
+                menuChat.classList.add('active');
+                menuEditor.classList.remove('active');
+            } else {
+                chatContainer.classList.add('hidden');
+                editorContainer.classList.add('active');
+                menuChat.classList.remove('active');
+                menuEditor.classList.add('active');
+
+                // Initialize Draw.io editor if not already done
+                initDrawioEditor();
+            }
+        }
+
+        function initDrawioEditor() {
+            if (drawioFrame && editorReady) return;
+
+            drawioFrame = document.getElementById('drawio-frame');
+            drawioFrame.src = DRAWIO_URL;
+            updateEditorStatus('Loading Draw.io...');
+        }
+
+        function updateEditorStatus(text) {
+            document.getElementById('editor-status').textContent = text;
+        }
+
+        // Listen for Draw.io messages
+        window.addEventListener('message', (event) => {
+            // Only accept messages from Draw.io
+            if (event.origin !== 'https://embed.diagrams.net') return;
+
+            let msg;
+            try {
+                msg = JSON.parse(event.data);
+            } catch (e) {
+                return;
+            }
+
+            handleDrawioMessage(msg);
+        });
+
+        function handleDrawioMessage(msg) {
+            switch (msg.event) {
+                case 'init':
+                    editorReady = true;
+                    updateEditorStatus('Ready');
+                    // Load blank diagram or last saved
+                    if (currentDiagramXml) {
+                        loadDiagramToEditor(currentDiagramXml);
+                    } else {
+                        // Start with blank diagram
+                        postToDrawio({ action: 'load', xml: '' });
+                    }
+                    break;
+
+                case 'save':
+                    // User clicked save in Draw.io
+                    currentDiagramXml = msg.xml;
+                    updateEditorStatus('Saved');
+                    // Request export for preview
+                    postToDrawio({
+                        action: 'export',
+                        format: 'xmlpng',
+                        xml: msg.xml,
+                        spinKey: 'saving'
+                    });
+                    break;
+
+                case 'export':
+                    // Export completed
+                    if (msg.data) {
+                        handleExportedImage(msg.data, msg.format);
+                    }
+                    updateEditorStatus('Exported');
+                    break;
+
+                case 'autosave':
+                    // Auto-save draft
+                    currentDiagramXml = msg.xml;
+                    localStorage.setItem('drawio-draft', msg.xml);
+                    updateEditorStatus('Draft saved');
+                    break;
+
+                case 'exit':
+                    // User closed editor - switch back to chat
+                    switchMode('chat');
+                    break;
+            }
+        }
+
+        function postToDrawio(msg) {
+            if (!drawioFrame || !editorReady) return;
+            drawioFrame.contentWindow.postMessage(JSON.stringify(msg), '*');
+        }
+
+        function loadDiagramToEditor(xml) {
+            postToDrawio({
+                action: 'load',
+                autosave: 1,
+                xml: xml
+            });
+        }
+
+        // Toolbar actions
+        function newDiagram() {
+            if (currentDiagramXml && !confirm('Create new diagram? Unsaved changes will be lost.')) {
+                return;
+            }
+            currentDiagramXml = null;
+            localStorage.removeItem('drawio-draft');
+            postToDrawio({ action: 'load', xml: '' });
+            updateEditorStatus('New diagram');
+        }
+
+        function openDiagram() {
+            document.getElementById('diagram-file-input').click();
+        }
+
+        // Handle file open
+        document.getElementById('diagram-file-input')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            if (file.name.endsWith('.png') || file.name.endsWith('.svg')) {
+                // Read as data URL for images with embedded XML
+                reader.onload = (e) => {
+                    postToDrawio({
+                        action: 'load',
+                        autosave: 1,
+                        xmlpng: e.target.result
+                    });
+                    updateEditorStatus('Opened: ' + file.name);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Read as text for XML/drawio files
+                reader.onload = (e) => {
+                    currentDiagramXml = e.target.result;
+                    loadDiagramToEditor(currentDiagramXml);
+                    updateEditorStatus('Opened: ' + file.name);
+                };
+                reader.readAsText(file);
+            }
+
+            e.target.value = ''; // Reset input
+        });
+
+        function exportDiagram() {
+            if (!editorReady) {
+                alert('Editor not ready. Please wait.');
+                return;
+            }
+            updateEditorStatus('Exporting...');
+            postToDrawio({
+                action: 'export',
+                format: 'png',
+                spinKey: 'export'
+            });
+        }
+
+        let pendingExportToChat = false;
+
+        function exportToChat() {
+            if (!editorReady) {
+                alert('Editor not ready. Please wait.');
+                return;
+            }
+            pendingExportToChat = true;
+            updateEditorStatus('Sending to chat...');
+            postToDrawio({
+                action: 'export',
+                format: 'png',
+                spinKey: 'chat-export'
+            });
+        }
+
+        function handleExportedImage(data, format) {
+            // data is base64 encoded image
+            if (format === 'png' && pendingExportToChat) {
+                pendingExportToChat = false;
+                // Switch to chat mode and send the image
+                switchMode('chat');
+
+                // Add the diagram as an attachment
+                attachedBase64 = data.startsWith('data:') ? data : 'data:image/png;base64,' + data;
+                attachedFile = { name: 'drawio-diagram.png', size: 0, type: 'image/png' };
+
+                // Show preview
+                previewImg.src = attachedBase64;
+                previewFilename.textContent = 'drawio-diagram.png';
+                previewFilesize.textContent = 'From Draw.io';
+                imagePreview.classList.add('active');
+                attachBtn.classList.add('has-file');
+                updateSendButton();
+
+                // Pre-fill message
+                input.value = 'Convert this Draw.io diagram to Canvas Bot format';
+                input.focus();
+                updateSendButton();
+
+                addMessage('Draw.io diagram ready. Add a description and send to convert!', 'system');
+            } else if (format === 'png' || format === 'xmlpng') {
+                // Download the PNG
+                const link = document.createElement('a');
+                link.download = 'diagram-' + new Date().toISOString().slice(0, 19).replace(/[:-]/g, '') + '.png';
+                link.href = data.startsWith('data:') ? data : 'data:image/png;base64,' + data;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                updateEditorStatus('Downloaded');
+            }
+        }
+
+        // Restore draft on load
+        const savedDraft = localStorage.getItem('drawio-draft');
+        if (savedDraft) {
+            currentDiagramXml = savedDraft;
+        }
     </script>
 </body>
 </html>
