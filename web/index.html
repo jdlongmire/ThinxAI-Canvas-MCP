@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Canvas Bot - Hierarchical Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Catppuccin Mocha palette */
+        :root {
+            --crust: #11111b;
+            --mantle: #181825;
+            --base: #1e1e2e;
+            --surface0: #313244;
+            --surface1: #45475a;
+            --surface2: #585b70;
+            --overlay0: #6c7086;
+            --overlay1: #7f849c;
+            --text: #cdd6f4;
+            --subtext0: #a6adc8;
+            --subtext1: #bac2de;
+            --lavender: #b4befe;
+            --blue: #89b4fa;
+            --sapphire: #74c7ec;
+            --sky: #89dceb;
+            --teal: #94e2d5;
+            --green: #a6e3a1;
+            --yellow: #f9e2af;
+            --peach: #fab387;
+            --maroon: #eba0ac;
+            --red: #f38ba8;
+            --mauve: #cba6f7;
+            --pink: #f5c2e7;
+            --flamingo: #f2cdcd;
+            --rosewater: #f5e0dc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--crust);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--mantle);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--surface0);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--mauve);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        header h1 .icon {
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        header h1 .icon:hover {
+            opacity: 0.8;
+        }
+
+        header h1 .subtitle {
+            font-size: 12px;
+            color: var(--overlay0);
+            font-weight: 400;
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        nav button {
+            background: transparent;
+            color: var(--subtext0);
+            border: 1px solid var(--surface0);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        nav button:hover {
+            color: var(--text);
+            border-color: var(--surface1);
+            background: var(--surface0);
+        }
+
+        #chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background: var(--surface0);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant {
+            background: var(--mantle);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border-left: 3px solid var(--mauve);
+        }
+
+        .message.assistant pre {
+            background: var(--crust);
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .message.assistant code {
+            font-family: 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .message.assistant p code {
+            background: var(--crust);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .message.typing {
+            color: var(--overlay0);
+            font-style: italic;
+        }
+
+        .message.system {
+            background: rgba(203, 166, 247, 0.1);
+            align-self: center;
+            border: 1px dashed var(--mauve);
+            max-width: 95%;
+            font-size: 13px;
+        }
+
+        /* Quick actions panel */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--mantle);
+            border-bottom: 1px solid var(--surface0);
+        }
+
+        .quick-action {
+            background: rgba(203, 166, 247, 0.15);
+            color: var(--mauve);
+            border: 1px solid rgba(203, 166, 247, 0.3);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            background: rgba(203, 166, 247, 0.25);
+            border-color: var(--mauve);
+        }
+
+        #input-area {
+            padding: 12px 16px;
+            background: var(--mantle);
+            border-top: 1px solid var(--surface0);
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            align-items: flex-end;
+        }
+
+        #message-input {
+            flex: 1;
+            min-width: 0;
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            border-radius: 20px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+        }
+
+        #message-input:focus {
+            border-color: var(--mauve);
+        }
+
+        #send-btn {
+            background: var(--mauve);
+            color: var(--crust);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #send-btn:disabled {
+            background: var(--surface1);
+            cursor: not-allowed;
+        }
+
+        #send-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* Markdown styling */
+        .message.assistant h1, .message.assistant h2, .message.assistant h3 {
+            margin: 12px 0 8px 0;
+            font-weight: 600;
+        }
+        .message.assistant h1 { font-size: 1.3em; }
+        .message.assistant h2 { font-size: 1.15em; }
+        .message.assistant h3 { font-size: 1.05em; }
+
+        .message.assistant ul, .message.assistant ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        .message.assistant li {
+            margin: 4px 0;
+        }
+
+        .message.assistant blockquote {
+            border-left: 3px solid var(--mauve);
+            padding-left: 12px;
+            margin: 8px 0;
+            color: var(--subtext0);
+        }
+
+        .message.assistant a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        .message.assistant a:hover {
+            text-decoration: underline;
+        }
+
+        .message.assistant strong {
+            color: var(--text);
+        }
+
+        .message.assistant hr {
+            border: none;
+            border-top: 1px solid var(--surface1);
+            margin: 12px 0;
+        }
+
+        .message.assistant table {
+            border-collapse: collapse;
+            margin: 8px 0;
+            width: 100%;
+        }
+
+        .message.assistant th, .message.assistant td {
+            border: 1px solid var(--surface1);
+            padding: 6px 10px;
+            text-align: left;
+        }
+
+        .message.assistant th {
+            background: var(--surface0);
+        }
+
+        /* Image modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .image-modal img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+        }
+
+        .image-modal.active {
+            display: flex;
+        }
+
+        /* Diagram container with download button */
+        .diagram-container {
+            position: relative;
+            display: inline-block;
+            margin: 8px 0;
+        }
+
+        .diagram-container img {
+            display: block;
+            max-width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid var(--mauve);
+            margin: 0;
+        }
+
+        .diagram-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .diagram-container:hover .diagram-actions {
+            opacity: 1;
+        }
+
+        .diagram-btn {
+            background: rgba(24, 24, 37, 0.9);
+            color: var(--mauve);
+            border: 1px solid var(--mauve);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .diagram-btn:hover {
+            background: var(--mauve);
+            color: var(--crust);
+        }
+
+        /* Node type legend */
+        .legend {
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            background: var(--mantle);
+            border: 1px solid var(--surface0);
+            border-radius: 8px;
+            padding: 12px;
+            z-index: 100;
+            font-size: 12px;
+        }
+
+        .legend.active {
+            display: block;
+        }
+
+        .legend h4 {
+            margin-bottom: 8px;
+            color: var(--mauve);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>
+            <span class="icon" onclick="location.reload()" title="Refresh page">&#128202;</span>
+            Canvas Bot
+            <span class="subtitle">Hierarchical System Diagrams</span>
+        </h1>
+        <nav>
+            <button onclick="toggleLegend()">Legend</button>
+            <button onclick="clearHistory()">Clear</button>
+        </nav>
+    </header>
+
+    <div class="quick-actions">
+        <button class="quick-action" data-prompt="I need a data pipeline diagram">Data Pipeline</button>
+        <button class="quick-action" data-prompt="I need an AI/ML workflow diagram">AI Workflow</button>
+        <button class="quick-action" data-prompt="I need a microservices architecture diagram">Microservices</button>
+        <button class="quick-action" data-prompt="I need a decision flow diagram">Decision Flow</button>
+        <button class="quick-action" data-prompt="I need a multi-stage processing pipeline">Multi-Stage</button>
+        <button class="quick-action" data-prompt="I need to show data integration from multiple sources">Data Integration</button>
+    </div>
+
+    <div id="chat"></div>
+
+    <div id="input-area">
+        <textarea id="message-input" placeholder="Describe your diagram..." rows="1"></textarea>
+        <button id="send-btn" disabled>&#10148;</button>
+    </div>
+
+    <div class="image-modal" id="image-modal">
+        <img src="" alt="Fullscreen image">
+    </div>
+
+    <div class="legend" id="legend">
+        <h4>Node Types</h4>
+        <div class="legend-item"><div class="legend-color" style="background: #2196F3;"></div> input - Data entry</div>
+        <div class="legend-item"><div class="legend-color" style="background: #FFC107;"></div> output - Results</div>
+        <div class="legend-item"><div class="legend-color" style="background: #00BCD4;"></div> process - Transform</div>
+        <div class="legend-item"><div class="legend-color" style="background: #F44336;"></div> decision - Branch</div>
+        <div class="legend-item"><div class="legend-color" style="background: #9C27B0;"></div> ai - AI/LLM</div>
+        <div class="legend-item"><div class="legend-color" style="background: #FF9800;"></div> source - External</div>
+        <div class="legend-item"><div class="legend-color" style="background: #4CAF50;"></div> static - Constants</div>
+        <div class="legend-item"><div class="legend-color" style="background: #999999;"></div> default - Generic</div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const imageModal = document.getElementById('image-modal');
+        const modalImg = imageModal.querySelector('img');
+        const legend = document.getElementById('legend');
+
+        let isSending = false;
+
+        // Configure marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false
+        });
+
+        // Add welcome message
+        window.addEventListener('load', () => {
+            addMessage(`Welcome to Canvas Bot! I create **hierarchical system diagrams** with semantic color-coding.
+
+**Tell me what you want to visualize**, and I'll ask a few questions to understand:
+- What system/process you're modeling
+- What nodes you need (inputs, processes, outputs, AI steps, etc.)
+- How they connect together
+
+**Quick tips:**
+- Use the buttons above for common diagram types
+- Click "Legend" to see node type colors
+- Click any diagram to view fullscreen, hover for download
+
+What would you like me to diagram?`, 'assistant');
+        });
+
+        // Quick action buttons
+        document.querySelectorAll('.quick-action').forEach(btn => {
+            btn.addEventListener('click', () => {
+                input.value = btn.dataset.prompt;
+                input.focus();
+                updateSendButton();
+            });
+        });
+
+        // Image modal
+        imageModal.addEventListener('click', () => {
+            imageModal.classList.remove('active');
+        });
+
+        function openImageModal(src) {
+            modalImg.src = src;
+            imageModal.classList.add('active');
+        }
+
+        function toggleLegend() {
+            legend.classList.toggle('active');
+        }
+
+        async function clearHistory() {
+            if (!confirm('Clear conversation history?')) return;
+            try {
+                await fetch(`${API_BASE}/api/history/clear`, { method: 'POST' });
+                chat.innerHTML = '';
+                addMessage('History cleared. What would you like to diagram?', 'assistant');
+            } catch (e) {
+                console.error('Clear failed:', e);
+            }
+        }
+
+        async function downloadDiagram(imgSrc) {
+            try {
+                const url = new URL(imgSrc, window.location.origin);
+                const imagePath = url.searchParams.get('path');
+                if (!imagePath) {
+                    alert('Could not determine image path');
+                    return;
+                }
+
+                const response = await fetch(imgSrc);
+                if (!response.ok) throw new Error('Download failed');
+
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const filename = imagePath.split('/').pop() || 'diagram.png';
+
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+            } catch (e) {
+                console.error('Download error:', e);
+                alert('Download failed: ' + e.message);
+            }
+        }
+
+        function createDiagramContainer(imgSrc, imgPath) {
+            const container = document.createElement('div');
+            container.className = 'diagram-container';
+
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.alt = 'Diagram';
+            img.addEventListener('click', () => openImageModal(imgSrc));
+
+            const actions = document.createElement('div');
+            actions.className = 'diagram-actions';
+
+            const pngBtn = document.createElement('button');
+            pngBtn.className = 'diagram-btn';
+            pngBtn.innerHTML = '&#8681; PNG';
+            pngBtn.title = 'Download PNG';
+            pngBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                downloadDiagram(imgSrc);
+            });
+
+            actions.appendChild(pngBtn);
+            container.appendChild(img);
+            container.appendChild(actions);
+
+            return container;
+        }
+
+        function processImages(content) {
+            const imagePattern = /\[ACTION:show_image\|([^\]]+)\]/g;
+            let match;
+            const images = [];
+            while ((match = imagePattern.exec(content)) !== null) {
+                images.push(match[1]);
+            }
+            content = content.replace(imagePattern, '');
+            return { content, images };
+        }
+
+        // Auto-resize textarea
+        input.addEventListener('input', () => {
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            updateSendButton();
+        });
+
+        // Enter to send
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!sendBtn.disabled) sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        function updateSendButton() {
+            sendBtn.disabled = !input.value.trim() || isSending;
+        }
+
+        function addMessage(content, role, skipMarkdown = false) {
+            const msg = document.createElement('div');
+            msg.className = `message ${role}`;
+
+            if (role === 'assistant' && !skipMarkdown && !msg.classList.contains('typing')) {
+                const { content: cleanContent, images } = processImages(content);
+                msg.innerHTML = marked.parse(cleanContent);
+
+                // Add diagrams with download buttons
+                images.forEach(imgPath => {
+                    const imgSrc = `/api/image?path=${encodeURIComponent(imgPath)}`;
+                    const container = createDiagramContainer(imgSrc, imgPath);
+                    msg.appendChild(container);
+                });
+
+                // Make inline images clickable
+                msg.querySelectorAll('img:not(.diagram-container img)').forEach(img => {
+                    img.addEventListener('click', () => openImageModal(img.src));
+                });
+            } else {
+                msg.textContent = content;
+            }
+
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+            return msg;
+        }
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/api/status`);
+                if (!res.ok) {
+                    console.error('Server not responding');
+                }
+            } catch (e) {
+                console.error('Server offline');
+            }
+        }
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text || isSending) return;
+
+            isSending = true;
+            sendBtn.disabled = true;
+            input.value = '';
+            input.style.height = 'auto';
+
+            addMessage(text, 'user', true);
+            const typingMsg = addMessage('Thinking...', 'assistant', true);
+            typingMsg.classList.add('typing');
+
+            try {
+                const res = await fetch(`${API_BASE}/api/message/stream`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                if (!res.ok) {
+                    typingMsg.textContent = 'Error: ' + res.statusText;
+                    typingMsg.classList.remove('typing');
+                } else {
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let responseChunks = [];
+                    const MAX_BUFFER_SIZE = 512 * 1024;
+
+                    function processLine(line) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const event = JSON.parse(line.slice(6));
+                                if (event.type === 'status') {
+                                    typingMsg.textContent = event.message;
+                                } else if (event.type === 'tool') {
+                                    typingMsg.textContent = `Using: ${event.message}`;
+                                } else if (event.type === 'tool_result') {
+                                    typingMsg.textContent = 'Processing...';
+                                } else if (event.type === 'response_chunk') {
+                                    responseChunks.push(event.content || '');
+                                    typingMsg.textContent = 'Creating diagram...';
+                                } else if (event.type === 'response') {
+                                    typingMsg.remove();
+                                    const fullContent = responseChunks.length > 0
+                                        ? responseChunks.join('') + (event.content || '')
+                                        : (event.content || 'No response');
+                                    addMessage(fullContent, 'assistant');
+                                    responseChunks = [];
+                                } else if (event.type === 'error') {
+                                    typingMsg.textContent = 'Error: ' + event.message;
+                                    typingMsg.classList.remove('typing');
+                                }
+                            } catch (e) {
+                                console.warn('SSE parse error:', e.message);
+                            }
+                        }
+                    }
+
+                    try {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            const chunk = decoder.decode(value, { stream: true });
+                            buffer += chunk;
+
+                            if (buffer.length > MAX_BUFFER_SIZE && !buffer.includes('\n')) {
+                                console.warn('SSE buffer overflow - resetting');
+                                buffer = '';
+                                continue;
+                            }
+
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop();
+
+                            for (const line of lines) {
+                                processLine(line);
+                            }
+                        }
+                    } catch (streamError) {
+                        console.error('Stream error:', streamError);
+                        typingMsg.textContent = 'Stream error - please try again';
+                        typingMsg.classList.remove('typing');
+                    }
+
+                    if (buffer.trim()) {
+                        processLine(buffer);
+                    }
+                }
+            } catch (e) {
+                typingMsg.textContent = 'Error: ' + e.message;
+                typingMsg.classList.remove('typing');
+            }
+
+            isSending = false;
+            updateSendButton();
+        }
+
+        // Initialize
+        checkStatus();
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>
